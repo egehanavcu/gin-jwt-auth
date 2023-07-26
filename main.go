@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var cfg *config.Config
+
 func main() {
 	gin.SetMode(gin.DebugMode)
 

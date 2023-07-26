@@ -1,6 +1,8 @@
 package routes
 
-import controllers "gin-jwt-auth/src/controlllers"
+import (
+	controllers "gin-jwt-auth/src/controlllers"
+)
 
 func AuthRouter() {
 	authGroup := Router.Group("/auth")
