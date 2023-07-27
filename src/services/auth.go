@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"gin-jwt-auth/src/config"
 	"strings"
+	"time"
 )
 
 func GenerateJWT(data interface{}) (string, error) {
@@ -43,6 +44,28 @@ func JWTSignature(header, payload string) string {
 	h.Write(message)
 	signature := h.Sum(nil)
 	return URLSafeBase64Encode(string(signature))
+}
+
+func HandleJWT(token string, allowedRoles ...string) (interface{}, error) {
+	data, err := ParseJWT(token)
+	if err != nil {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	exp, ok := data["exp"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	if float64(time.Now().Unix()) > exp {
+		return nil, fmt.Errorf("token has expired")
+	}
+
+	if !isRoleAllowed(data["role"].(string), allowedRoles) {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	return data, nil
 }
 
 func ParseJWT(jwt string) (map[string]any, error) {
@@ -117,4 +140,18 @@ func URLSafeBase64Decode(s string) (string, error) {
 	}
 
 	return string(decodedBytes), nil
+}
+
+func isRoleAllowed(userRole string, allowedRoles []string) bool {
+	if len(allowedRoles) == 0 {
+		return true
+	}
+
+	for _, role := range allowedRoles {
+		if userRole == role {
+			return true
+		}
+	}
+
+	return false
 }

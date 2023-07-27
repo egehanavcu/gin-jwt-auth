@@ -4,7 +4,6 @@ import (
 	"gin-jwt-auth/src/services"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,6 +11,7 @@ import (
 func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
+
 		if authHeader == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "missing authorization header",
@@ -27,33 +27,10 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		token := parts[1]
-		data, err := services.ParseJWT(token)
+		data, err := services.HandleJWT(parts[1], allowedRoles...)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid token",
-			})
-			return
-		}
-
-		exp, ok := data["exp"].(float64)
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid token",
-			})
-			return
-		}
-
-		if float64(time.Now().Unix()) > exp {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "token has expired",
-			})
-			return
-		}
-
-		if !isRoleAllowed(data["role"].(string), allowedRoles) {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "unauthorized",
+				"error": err.Error(),
 			})
 			return
 		}
@@ -61,14 +38,4 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		c.Set("user", data)
 		c.Next()
 	}
-}
-
-func isRoleAllowed(userRole string, allowedRoles []string) bool {
-	for _, role := range allowedRoles {
-		if userRole == role {
-			return true
-		}
-	}
-
-	return false
 }

@@ -10,5 +10,6 @@ func AuthRouter() {
 		authGroup.POST("/login", controllers.LoginHandler)
 		authGroup.POST("/register", controllers.RegisterHandler)
 		authGroup.GET("/logout", controllers.LogoutHandler)
+		// TODO: authGroup.POST("/refresh", controllers.RefreshHandler)
 	}
 }
