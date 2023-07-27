@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"gin-jwt-auth/src/services"
 	"net/http"
 	"strings"
@@ -37,9 +36,7 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		fmt.Println(data)
-		fmt.Println(data["exp"])
-		exp, ok := data["exp"].(int64)
+		exp, ok := data["exp"].(float64)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid token",
@@ -47,7 +44,7 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		if time.Now().Unix() > exp {
+		if float64(time.Now().Unix()) > exp {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "token has expired",
 			})
