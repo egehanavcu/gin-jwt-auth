@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"gin-jwt-auth/src/services"
 	"net/http"
 	"strings"
@@ -9,13 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type JWTMiddleware struct{}
-
-func NewJWTMiddleware() *JWTMiddleware {
-	return &JWTMiddleware{}
-}
-
-func (m *JWTMiddleware) JWTMiddleware() gin.HandlerFunc {
+func JWTMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -42,10 +37,26 @@ func (m *JWTMiddleware) JWTMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Check if token has expired
-		if time.Now().Unix() > data["exp"].(int64) {
+		fmt.Println(data)
+		fmt.Println(data["exp"])
+		exp, ok := data["exp"].(int64)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid token",
+			})
+			return
+		}
+
+		if time.Now().Unix() > exp {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "token has expired",
+			})
+			return
+		}
+
+		if !isRoleAllowed(data["role"].(string), allowedRoles) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "unauthorized",
 			})
 			return
 		}
@@ -53,4 +64,14 @@ func (m *JWTMiddleware) JWTMiddleware() gin.HandlerFunc {
 		c.Set("user", data)
 		c.Next()
 	}
+}
+
+func isRoleAllowed(userRole string, allowedRoles []string) bool {
+	for _, role := range allowedRoles {
+		if userRole == role {
+			return true
+		}
+	}
+
+	return false
 }
