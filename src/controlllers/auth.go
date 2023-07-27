@@ -21,7 +21,7 @@ func LoginHandler(c *gin.Context) {
 	if loginDTO.Email == "admin@admin.com" && loginDTO.Password == "admin" {
 		userData := map[string]any{
 			"iat":   time.Now().Unix(),
-			"exp":   time.Now().Add(time.Hour * 1).Unix(),
+			"exp":   time.Now().Add(time.Minute * 1).Unix(),
 			"email": loginDTO.Email,
 			"role":  "admin",
 		}
@@ -52,9 +52,8 @@ func LoginHandler(c *gin.Context) {
 		c.SetCookie("refresh_token", refresh_token, 3600, "/", "", true, true)
 
 		c.JSON(http.StatusOK, gin.H{
-			"message":       "Login successful",
-			"access_token":  access_token,
-			"refresh_token": refresh_token,
+			"message":      "Login successful",
+			"access_token": access_token,
 		})
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{
