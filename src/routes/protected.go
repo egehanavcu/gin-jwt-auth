@@ -6,7 +6,7 @@ import (
 )
 
 func ProtectedRouter() {
-	Router.GET("/protected/admin", middlewares.JWTMiddleware("admin"), controllers.ProtectedController)
-	Router.GET("/protected/user", middlewares.JWTMiddleware("user"), controllers.ProtectedController)
-	Router.GET("/protected/all", middlewares.JWTMiddleware("admin", "user"), controllers.ProtectedController)
+	Router.GET("/protected/admin", middlewares.AuthMiddleware("admin"), controllers.ProtectedController)
+	Router.GET("/protected/user", middlewares.AuthMiddleware("user"), controllers.ProtectedController)
+	Router.GET("/protected/all", middlewares.AuthMiddleware("admin", "user"), controllers.ProtectedController)
 }

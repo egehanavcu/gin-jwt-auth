@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func JWTMiddleware(allowedRoles ...string) gin.HandlerFunc {
+func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
