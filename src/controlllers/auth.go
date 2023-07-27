@@ -1,16 +1,61 @@
 package controllers
 
 import (
+	"gin-jwt-auth/src/dto"
+	"gin-jwt-auth/src/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func LoginHandler(c *gin.Context) {
-	// TODO: Implement login logic
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
-	})
+	var loginDTO dto.AuthLoginDTO
+	if err := c.ShouldBindJSON(&loginDTO); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if loginDTO.Email == "admin@admin.com" && loginDTO.Password == "admin" {
+		userData := map[string]any{
+			"email": loginDTO.Email,
+			"role":  "admin",
+		}
+
+		access_token, err := services.GenerateJWT(userData)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		refreshData := map[string]any{
+			"token": access_token,
+		}
+
+		refresh_token, err := services.GenerateJWT(refreshData)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.SetCookie("access_token", access_token, 3600, "/", "localhost", false, false)
+		c.SetCookie("refresh_token", refresh_token, 3600, "/", "localhost", true, true)
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":       "Login successful",
+			"access_token":  access_token,
+			"refresh_token": refresh_token,
+		})
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid credentials",
+		})
+	}
 }
 
 func RegisterHandler(c *gin.Context) {

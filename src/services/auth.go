@@ -9,22 +9,30 @@ import (
 	"strings"
 )
 
-func GenerateJWT(data interface{}) string {
-	header := JWTPart(map[string]string{
+func GenerateJWT(data interface{}) (string, error) {
+	header, header_err := JWTPart(map[string]string{
 		"alg": "HS256",
 		"typ": "JWT",
 	})
-	payload := JWTPart(data)
+
+	if header_err != nil {
+		return "", header_err
+	}
+
+	payload, payload_err := JWTPart(data)
+	if payload_err != nil {
+		return "", payload_err
+	}
 	signature := JWTSignature(header, payload)
-	return fmt.Sprintf("%s.%s.%s", header, payload, signature)
+	return fmt.Sprintf("%s.%s.%s", header, payload, signature), nil
 }
 
-func JWTPart(data interface{}) string {
+func JWTPart(data interface{}) (string, error) {
 	jsonData, err := JSONDumps(data)
 	if err != nil {
-		panic(err)
+		return "", fmt.Errorf("error encoding data to JSON: %v", err)
 	}
-	return URLSafeBase64Encode(jsonData)
+	return URLSafeBase64Encode(jsonData), nil
 }
 
 func JWTSignature(header, payload string) string {
