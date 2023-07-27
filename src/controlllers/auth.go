@@ -4,6 +4,7 @@ import (
 	"gin-jwt-auth/src/dto"
 	"gin-jwt-auth/src/services"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,8 @@ func LoginHandler(c *gin.Context) {
 
 	if loginDTO.Email == "admin@admin.com" && loginDTO.Password == "admin" {
 		userData := map[string]any{
+			"iat":   time.Now().Unix(),
+			"exp":   time.Now().Add(time.Hour * 1).Unix(),
 			"email": loginDTO.Email,
 			"role":  "admin",
 		}
@@ -32,6 +35,8 @@ func LoginHandler(c *gin.Context) {
 		}
 
 		refreshData := map[string]any{
+			"iat":   time.Now().Unix(),
+			"exp":   time.Now().Add(time.Hour * 24).Unix(),
 			"token": access_token,
 		}
 
