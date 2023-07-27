@@ -7,13 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var cfg *config.Config
-
 func main() {
 	gin.SetMode(gin.DebugMode)
-
-	cfg := config.New()
-
 	routes.Init()
-	routes.Router.Run(cfg.Port)
+	routes.Router.Run(config.Get("Port").(string))
 }

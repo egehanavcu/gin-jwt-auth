@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gin-jwt-auth/src/config"
 	"gin-jwt-auth/src/dto"
 	"gin-jwt-auth/src/services"
 	"net/http"
@@ -19,9 +20,9 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	if loginDTO.Email == "admin@admin.com" && loginDTO.Password == "admin" {
-		userData := map[string]any{
+		userData := map[string]interface{}{
 			"iat":   time.Now().Unix(),
-			"exp":   time.Now().Add(time.Minute * 1).Unix(),
+			"exp":   time.Now().Add(config.Get("AccessTokenDuration").(time.Duration)).Unix(),
 			"email": loginDTO.Email,
 			"role":  "admin",
 		}
@@ -34,9 +35,9 @@ func LoginHandler(c *gin.Context) {
 			return
 		}
 
-		refreshData := map[string]any{
+		refreshData := map[string]interface{}{
 			"iat":   time.Now().Unix(),
-			"exp":   time.Now().Add(time.Hour * 24).Unix(),
+			"exp":   time.Now().Add(config.Get("RefreshTokenDuration").(time.Duration)).Unix(),
 			"token": access_token,
 		}
 

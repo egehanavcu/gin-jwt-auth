@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"gin-jwt-auth/src/config"
 	"strings"
 )
 
@@ -36,7 +37,7 @@ func JWTPart(data interface{}) (string, error) {
 }
 
 func JWTSignature(header, payload string) string {
-	secretKey := []byte("your-256-bit-secret")
+	secretKey := []byte(config.Get("JWTSecret").(string))
 	message := []byte(header + "." + payload)
 	h := hmac.New(sha256.New, secretKey)
 	h.Write(message)
