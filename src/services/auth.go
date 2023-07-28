@@ -12,7 +12,7 @@ import (
 )
 
 func GenerateJWT(data interface{}) (string, error) {
-	header, header_err := JWTPart(map[string]string{
+	header, header_err := GenerateJWTPart(map[string]string{
 		"alg": "HS256",
 		"typ": "JWT",
 	})
@@ -21,15 +21,15 @@ func GenerateJWT(data interface{}) (string, error) {
 		return "", header_err
 	}
 
-	payload, payload_err := JWTPart(data)
+	payload, payload_err := GenerateJWTPart(data)
 	if payload_err != nil {
 		return "", payload_err
 	}
-	signature := JWTSignature(header, payload)
+	signature := SignJWT(header, payload)
 	return fmt.Sprintf("%s.%s.%s", header, payload, signature), nil
 }
 
-func JWTPart(data interface{}) (string, error) {
+func GenerateJWTPart(data interface{}) (string, error) {
 	jsonData, err := JSONDumps(data)
 	if err != nil {
 		return "", fmt.Errorf("error encoding data to JSON: %v", err)
@@ -37,7 +37,7 @@ func JWTPart(data interface{}) (string, error) {
 	return URLSafeBase64Encode(jsonData), nil
 }
 
-func JWTSignature(header, payload string) string {
+func SignJWT(header, payload string) string {
 	secretKey := []byte(config.Get("JWTSecret").(string))
 	message := []byte(header + "." + payload)
 	h := hmac.New(sha256.New, secretKey)
@@ -80,7 +80,7 @@ func ParseJWT(jwt string) (map[string]any, error) {
 	signature := parts[2]
 
 	// Check signature
-	if JWTSignature(header, payload) != signature {
+	if SignJWT(header, payload) != signature {
 		return nil, fmt.Errorf("invalid JWT signature")
 	}
 
