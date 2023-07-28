@@ -58,11 +58,13 @@ func HandleJWT(token string, allowedRoles ...string) (interface{}, error) {
 	}
 
 	if float64(time.Now().Unix()) > exp {
-		return nil, fmt.Errorf("token has expired")
+		return data, fmt.Errorf("token has expired")
 	}
 
-	if !isRoleAllowed(data["role"].(string), allowedRoles) {
-		return nil, fmt.Errorf("unauthorized")
+	if allowedRoles != nil {
+		if !isRoleAllowed(data["role"].(string), allowedRoles) {
+			return nil, fmt.Errorf("unauthorized")
+		}
 	}
 
 	return data, nil
